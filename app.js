@@ -22,7 +22,7 @@ const app=express();
 app.use(bodyParser.urlencoded({extended: true}));
 
 
-const insertIntoBase = async (patientID,spo2_value,bpm_value)=>{
+const insertValue = async (patientID,spo2_value,bpm_value)=>{
   var database_ref = database.ref()
   var today = new Date();
   var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
@@ -39,6 +39,21 @@ const insertIntoBase = async (patientID,spo2_value,bpm_value)=>{
   database_ref.child('values/'+patientID+"/"+dateTime).set(user_data)
 }
 
+
+const insertPatientID = async(patientID)=>{
+  var database_ref = database.ref();
+  database_ref.child("ID/IDsync").get().then((snapshot) =>{
+    var data = snapshot.val();
+    console.log(data);
+    var pre = 'a';
+    var end = patientID.concat('e');
+    var val = pre.concat(end);
+    var updata = data.replace('e',val);
+    console.log(updata);
+    database_ref.child('ID/IDsync').set(updata);
+  })
+}
+
 app.get('/value/:patientID/:spo2/:bpm',(req,res)=>{
     var patID = parseInt(req.params.patientID);
     var oxydata = parseInt(req.params.spo2);
@@ -46,7 +61,7 @@ app.get('/value/:patientID/:spo2/:bpm',(req,res)=>{
     if((!isNaN(oxydata))&&(!isNaN(bpmdata)))
       {
         res.send("patientID "+patID+" spo2 "+ oxydata +" bpm  "+bpmdata);
-        insertIntoBase(req.params.patientID,req.params.spo2,req.params.bpm);
+        insertValue(req.params.patientID,req.params.spo2,req.params.bpm);
       }
       else{
         res.send("ER:WRNG DATA"); //trying to use less than 16 characters so that it is visible on the 16*2 LCD screen
@@ -54,4 +69,24 @@ app.get('/value/:patientID/:spo2/:bpm',(req,res)=>{
 });
 
 
-app.listen(process.env.PORT || 5000);
+app.get('/IDreg/:id',(req,res)=>{
+  var patientID = parseInt(req.params.id);
+  if(!isNaN(patientID)){
+    res.send("patientID "+ patientID);
+    insertPatientID(req.params.id);
+  }else{
+    res.send("ER:WRNG DATA");
+  }
+});
+
+
+app.get('/IDsync',(req,res)=>{
+  var database_ref = database.ref();
+  database_ref.child("ID/IDsync").get().then((snapshot) =>{
+    res.send(snapshot.val())
+  })
+});
+
+app.listen(process.env.PORT || 5000,()=>{
+  console.log("server running!!!");
+});
