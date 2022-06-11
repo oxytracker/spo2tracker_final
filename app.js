@@ -42,6 +42,17 @@ const insertValue = async (patientID,spo2_value,bpm_value)=>{
 
 const insertPatientID = async(patientID)=>{
   var database_ref = database.ref();
+  var today = new Date();
+  var date = today.getFullYear()+'-'+(today.getMonth()+1)+'-'+today.getDate();
+  var time = today.getHours() + ":" + today.getMinutes() + ":" + today.getSeconds();
+  var dateTime = date+' '+time;
+
+  var table3_data ={
+    patientID : patientID,
+    timestamp : dateTime
+  }
+  database_ref.child("table3/"+patientID).set(table3_data);
+
   database_ref.child("ID/IDsync").get().then((snapshot) =>{
     var data = snapshot.val();
     console.log(data);
