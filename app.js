@@ -80,14 +80,28 @@ app.get('/value/:patientID/:spo2/:bpm',(req,res)=>{
 });
 
 
+// app.get('/IDreg/:id',(req,res)=>{
+//   var patientID = parseInt(req.params.id);
+//   if(!isNaN(patientID)){
+//     res.send("patientID "+ patientID);
+//     insertPatientID(req.params.id);
+//   }else{
+//     res.send("ER:WRNG DATA");
+//   }
+// });
+
 app.get('/IDreg/:id',(req,res)=>{
+  var database_ref = database.ref();
   var patientID = parseInt(req.params.id);
-  if(!isNaN(patientID)){
-    res.send("patientID "+ patientID);
-    insertPatientID(req.params.id);
-  }else{
-    res.send("ER:WRNG DATA");
-  }
+  database_ref.child("table3/"+patientID).get().then((snapshot)=>{
+    var data = snapshot.val()
+    if(data == null){
+      res.send("patientID "+ patientID);
+      insertPatientID(req.params.id);
+    }else{
+      res.send("ID already exists!!");
+    }
+  })
 });
 
 
